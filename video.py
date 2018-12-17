@@ -58,7 +58,7 @@ def analyzeVideo(type):
 
         # Сравниваю площадь маски с общим числом пикселей. Если их отношение больше определенного значения, вывожу тревогу
         if type == 'static':
-            rate = 0.005
+            rate = 0.01
         else: 
             rate = 0.015
         if (mask_area / frame_area > rate):
@@ -83,7 +83,7 @@ def analyzeVideo(type):
 
 
 if __name__ == '__main__':
-    # Видеопоток из файла: python3 video.py -i file -type static -f [имя файла]
+    # Видеопоток из файла: python3 video.py -i file -t static -f [имя файла] -t
     # Видеопоток с вебкамеры: python3 video.py -i webcam
     parser = createParser()
     namespace = parser.parse_args()
