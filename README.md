@@ -10,11 +10,11 @@ python3 video.py [аргументы]
 ```
 
 Аргументы: 
-* -f или --file [имя файла]
+* -f или --file [путь к файлу]
 * -t или --type [static || dynamic] 
 * -i или --input [file || webcam]
 
-Например, для статичного файла video_static.mp4, лежащего в текущей директории, вызов будет таким:
+Например, для файла со статичным фоном video_static.mp4 вызов будет таким:
 ```
 python3 video.py -i file --file video_static.mp4 --type static
 ```
