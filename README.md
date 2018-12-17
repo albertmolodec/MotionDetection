@@ -20,3 +20,7 @@ python3 video.py [аргументы]
 ```
 python3 video.py -i file --file video_static.mp4 --type static
 ```
+
+---
+
+Forked from [@ksenksenon](https://github.com/ksenksenon) 💙
