@@ -6,10 +6,15 @@
 ### Параметры запуска
 
 ```
-python3 video.py [arguments]
+python3 video.py [аргументы]
 ```
 
 Аргументы: 
 * -f или --file [имя файла]
 * -t или --type [static || dynamic] 
 * -i или --input [file || webcam]
+
+Например, для статичного файла video_static.mp4, лежащего в текущей директории, вызов будет таким:
+```
+python3 video.py -i file --file video_static.mp4 --type static
+```
