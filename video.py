@@ -32,24 +32,31 @@ def renderRate(frame, rate):
     cv2.putText(img = frame, text = rate, org = (x, y), color = (0, 0, 255), fontFace = cv2.FONT_HERSHEY_SIMPLEX, fontScale = 1)
 
 
-def analyzeVideo(type):
+def analyzeVideo(type, i):
     # Создаю объект для вычитания смеси гауссиан
+    # Со статичным фоном лучше работает MOG2, с динамичным — MOG
+    #
+    # MOG для моделирования каждого фонового пикселя смесью K гауссовых распределений (K = от 3 до 5). 
+    # Веса смеси представляют временные пропорции, в которых эти цвета остаются в сцене. 
+    # Возможные цвета фона - те, которые остаются дольше и более статичными.
+    #
+    # MOG2 берет соответствующее количество гауссовых распределений для каждого пикселя.
+    # Это обеспечивает лучшую адаптацию к изменениям освещения и т.д.
     if type == 'static':
         fgbg = cv2.createBackgroundSubtractorMOG2()
     else:
         fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
 
     # Считаю размер кадра
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width, height = cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     frame_area = int(width * height)
 
     while(cap.isOpened()):
         ret, input = cap.read()
-        # Маска
-        mask = fgbg.apply(input)
-        # Количество белых пикселей
-        mask_area = np.sum(mask) / 255
+        
+        mask = fgbg.apply(input, 0.05)
+        # Число белых пикселей в маске
+        mask_area = np.sum(mask == 255)
 
         rate = mask_area / frame_area * 100
 
@@ -58,17 +65,19 @@ def analyzeVideo(type):
 
         # Сравниваю площадь маски с общим числом пикселей. Если их отношение больше определенного значения, вывожу тревогу
         if type == 'static':
-            rate = 0.01
+            rate = 0.005
         else: 
             rate = 0.015
+
+        if (i == 'webcam'):
+            rate = 0.06
+
         if (mask_area / frame_area > rate):
           renderAlarm(input)
         
-        # Ресайзю и двигаю видео
-        mask = cv2.resize(mask, (640, 360))
-        input = cv2.resize(input, (640, 360))
-        mask_name = "Mask"
-        input_name = "Input"
+        # Ресайзю, двигаю и вывожу видео
+        mask, input = cv2.resize(mask, (720, 414)), cv2.resize(input, (720, 414))
+        mask_name, input_name = "Mask", "Input"
         cv2.namedWindow(mask_name)
         cv2.moveWindow(mask_name, 680, 100)
         cv2.imshow(mask_name, mask)
@@ -76,15 +85,15 @@ def analyzeVideo(type):
 
         # Закрываю окна по нажатию на Escape
         k = cv2.waitKey(30) & 0xff
-        if k == 27:
+        if k == 13:
             break
 
 
 
 
 if __name__ == '__main__':
-    # Видеопоток из файла: python3 video.py -i file -t static -f [имя файла] -t
-    # Видеопоток с вебкамеры: python3 video.py -i webcam
+    # Видеопоток из файла: python3 video.py -i file -t static -f [имя файла]
+    # Видеопоток с вебкамеры: python3 video.py --input webcam --type static
     parser = createParser()
     namespace = parser.parse_args()
 
@@ -95,7 +104,7 @@ if __name__ == '__main__':
         print("input: file {}".format(namespace.file))
         cap = cv2.VideoCapture(namespace.file)
 
-    analyzeVideo(namespace.type)
+    analyzeVideo(namespace.type, namespace.input)
 
     # Освобождаю программные и аппаратные ресурсы
     cap.release()
